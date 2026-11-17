@@ -1,6 +1,8 @@
 # prueba_fullstack3
 
 no borren esto
+
+
 spring.application.name=tienda-online
 
 spring.datasource.url=jdbc:mysql://localhost:3306/tienda_online?useSSL=false&serverTimezone=America/Santiago&allowPublicKeyRetrieval=true
