@@ -24,71 +24,68 @@ public class SecurityConfig {
             throws Exception {
 
         http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authorizeHttpRequests(auth -> auth
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
 
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers(
-                    "/swagger-ui.html",
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**"
-                ).permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**")
+                        .permitAll()
 
-                .requestMatchers(
-                    HttpMethod.GET,
-                    "/api/productos",
-                    "/api/productos/**"
-                ).hasAnyRole("ADMINISTRADOR", "VENDEDOR", "CLIENTE")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/productos",
+                                "/api/productos/**")
+                        .hasAnyRole("ADMINISTRADOR", "VENDEDOR", "CLIENTE")
 
-                .requestMatchers(
-                    HttpMethod.POST,
-                    "/api/productos",
-                    "/api/productos/**"
-                ).hasRole("ADMINISTRADOR")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/productos",
+                                "/api/productos/**")
+                        .hasRole("ADMINISTRADOR")
 
-                .requestMatchers(
-                    HttpMethod.PUT,
-                    "/api/productos",
-                    "/api/productos/**"
-                ).hasRole("ADMINISTRADOR")
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/productos",
+                                "/api/productos/**")
+                        .hasRole("ADMINISTRADOR")
 
-                .requestMatchers(
-                    HttpMethod.DELETE,
-                    "/api/productos",
-                    "/api/productos/**"
-                ).hasRole("ADMINISTRADOR")
-                .requestMatchers(
-                    HttpMethod.GET,
-                    "/api/categorias",
-                    "/api/categorias/**"
-                ).hasAnyRole("ADMINISTRADOR", "VENDEDOR", "CLIENTE")
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/productos",
+                                "/api/productos/**")
+                        .hasRole("ADMINISTRADOR")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/categorias",
+                                "/api/categorias/**")
+                        .hasAnyRole("ADMINISTRADOR", "VENDEDOR", "CLIENTE")
 
-                .requestMatchers("/api/categorias/**")
-                    .hasRole("ADMINISTRADOR")
-                .requestMatchers(
-                    HttpMethod.GET,
-                    "/api/pedidos",
-                    "/api/pedidos/**"
-                ).hasAnyRole("ADMINISTRADOR", "VENDEDOR", "CLIENTE")
+                        .requestMatchers("/api/categorias/**")
+                        .hasRole("ADMINISTRADOR")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/pedidos",
+                                "/api/pedidos/**")
+                        .hasAnyRole("ADMINISTRADOR", "VENDEDOR", "CLIENTE")
 
-                .requestMatchers(
-                    HttpMethod.POST,
-                    "/api/pedidos"
-                ).hasAnyRole("ADMINISTRADOR", "CLIENTE")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/pedidos")
+                        .hasAnyRole("ADMINISTRADOR", "CLIENTE")
 
-                .requestMatchers("/api/pedidos/**")
-                    .hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/**").authenticated()
+                        .requestMatchers("/api/pedidos/**")
+                        .hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/**").authenticated()
 
-                .anyRequest().permitAll()
-            )
-            .addFilterBefore(
-                jwtAuthenticationFilter,
-                UsernamePasswordAuthenticationFilter.class
-            );
+                        .anyRequest().permitAll())
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -96,5 +93,18 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+        org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
+        configuration.setAllowedOrigins(java.util.Arrays.asList("http://localhost:5173"));
+        configuration.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(java.util.Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+
+        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
