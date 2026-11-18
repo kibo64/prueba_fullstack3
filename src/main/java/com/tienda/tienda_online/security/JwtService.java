@@ -1,6 +1,7 @@
 package com.tienda.tienda_online.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
@@ -21,19 +22,36 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
+    @Value("${jwt.refresh-expiration}")
+    private long refreshExpiration;
+
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)
+        return Keys.hmacShaKeyFor(
+                secret.getBytes(StandardCharsets.UTF_8)
         );
     }
 
     public String generateToken(UserDetails userDetails) {
+        return generateToken(userDetails, jwtExpiration, "access");
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        return generateToken(userDetails, refreshExpiration, "refresh");
+    }
+
+    private String generateToken(
+            UserDetails userDetails,
+            long expiration,
+            String tokenType) {
 
         Date fechaActual = new Date();
-        Date fechaExpiracion = new Date(fechaActual.getTime() + jwtExpiration
+        Date fechaExpiracion = new Date(
+                fechaActual.getTime() + expiration
         );
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())
+                .claim("tokenType", tokenType)
                 .issuedAt(fechaActual)
                 .expiration(fechaExpiracion)
                 .signWith(getSigningKey())
@@ -45,7 +63,6 @@ public class JwtService {
     }
 
     private Claims extractAllClaims(String token) {
-
         return Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
@@ -54,16 +71,30 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
+
         try {
-            String username = extractUsername(token);
+            Claims claims = extractAllClaims(token);
 
-            return username.equals(userDetails.getUsername())
-                    && extractAllClaims(token)
-                    .getExpiration()
-                    .after(new Date());
+            return claims.getSubject().equals(userDetails.getUsername())
+                    && "access".equals(claims.get("tokenType", String.class))
+                    && claims.getExpiration().after(new Date());
 
-        } catch (io.jsonwebtoken.JwtException |
-                IllegalArgumentException e) {
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    // Validar refresh token
+    public boolean isRefreshTokenValid(String token, UserDetails userDetails) {
+
+        try {
+            Claims claims = extractAllClaims(token);
+
+            return claims.getSubject().equals(userDetails.getUsername())
+                    && "refresh".equals(claims.get("tokenType", String.class))
+                    && claims.getExpiration().after(new Date());
+
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }

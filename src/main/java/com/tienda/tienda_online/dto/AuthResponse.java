@@ -6,12 +6,20 @@ public class AuthResponse {
     private String username;
     private String rol;
     private String token;
+    private String refreshToken;
 
-    public AuthResponse(String mensaje, String username, String rol, String token) {
+    public AuthResponse(
+            String mensaje,
+            String username,
+            String rol,
+            String token,
+            String refreshToken) {
+
         this.mensaje = mensaje;
         this.username = username;
         this.rol = rol;
         this.token = token;
+        this.refreshToken = refreshToken;
     }
 
     public String getMensaje() {
@@ -28,5 +36,9 @@ public class AuthResponse {
 
     public String getToken() {
         return token;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
     }
 }
